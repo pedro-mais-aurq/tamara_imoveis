@@ -20,9 +20,9 @@
      scroll-behavior: smooth;
      overflow-y: auto;
 
-    /* Firefox */
-    scrollbar-width: thin;
-    scrollbar-color: var(--vinho-deep);
+     /* Firefox */
+     scrollbar-width: thin;
+     scrollbar-color: var(--vinho-deep);
  }
 
  body {
@@ -191,6 +191,15 @@
      transition: color .5s ease;
  }
 
+ .nav-links a.active {
+     color: var(--vinho);
+ }
+
+ .nav-links a:hover::after,
+ .nav-links a.active::after {
+     width: 100%;
+ }
+
  nav.scrolled .nav-links a {
      color: var(--preto);
  }
@@ -251,7 +260,7 @@
  }
 
  .hero-bg {
-     background: url("../imagens/tamara3.jpeg");
+     background: url("imagens/tamara3.jpeg");
      position: absolute;
      inset: 0;
      background-size: cover;
@@ -1220,5 +1229,5 @@
      }
 
 
-    
+
  }

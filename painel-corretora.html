@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel da Corretora | Tâmara Neres Imóveis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+  href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap"
+  rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --vinho: #6F1042;
+    --vinho-deep: #430A28;
+    --vinho-light: #8C2B5E;
+    --dourado: #EEAC5C;
+    --dourado-soft: #F3CB97;
+    --preto: #000000;
+    --branco: #FFFFFF;
+    --cinza: #888;
+    --cinza-claro: #f4f2f3;
+    --linha: rgba(0,0,0,.09);
+    --serif: 'Playfair Display', serif;
+    --sans: 'Montserrat', sans-serif;
+    --erro: #a3243b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--vinho-deep) transparent; }
+
+  body {
+    font-family: var(--sans);
+    color: var(--preto);
+    background: var(--cinza-claro);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { text-decoration: none; color: inherit; }
+  img { display: block; max-width: 100%; }
+  button, input, select, textarea { font-family: inherit; font-size: 14px; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.1; }
+
+  .eyebrow {
+    font-size: 11px; letter-spacing: .32em; text-transform: uppercase;
+    font-weight: 600; color: var(--dourado);
+  }
+  .eyebrow.dark { color: var(--vinho); }
+  .divider-gold { width: 46px; height: 1px; background: var(--dourado); margin: 10px 0 18px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 30px; font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    font-weight: 600; border: 1px solid var(--preto); transition: all .3s ease;
+    cursor: pointer; background: transparent; color: var(--preto);
+  }
+  .btn:hover { background: var(--preto); color: var(--branco); }
+  .btn.primary { background: var(--vinho); border-color: var(--vinho); color: var(--branco); }
+  .btn.primary:hover { background: var(--vinho-deep); border-color: var(--vinho-deep); }
+  .btn.ghost { border-color: rgba(0,0,0,.18); color: var(--preto); }
+  .btn.ghost:hover { background: rgba(0,0,0,.05); color: var(--preto); }
+  .btn.danger { border-color: var(--erro); color: var(--erro); }
+  .btn.danger:hover { background: var(--erro); color: var(--branco); }
+  .btn.small { padding: 9px 18px; font-size: 10.5px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:disabled:hover { background: transparent; color: inherit; }
+  .btn.primary:disabled:hover { background: var(--vinho); color: var(--branco); }
+
+  .icon { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; display: block; }
+
+  /* ===== mono logo ===== */
+  .mono svg { display: block; stroke: var(--vinho); }
+  .mono .stroke { fill: none; stroke-linecap: square; }
+
+  /* =========================================================
+     TELA DE LOGIN
+     ========================================================= */
+  .login-screen {
+    position: fixed; inset: 0; z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(120deg, var(--vinho-deep) 0%, var(--vinho) 60%, var(--vinho-light) 100%);
+    padding: 24px;
+  }
+  .login-card {
+    width: 100%; max-width: 380px; background: var(--branco);
+    padding: 48px 40px; box-shadow: 0 30px 70px rgba(0,0,0,.35);
+  }
+  .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 34px; }
+  .login-logo .mono { width: 30px; }
+  .login-wordmark { font-family: var(--serif); font-size: 18px; color: var(--vinho); }
+  .login-card h1 { font-size: 24px; margin-bottom: 6px; }
+  .login-card .sub { font-size: 12.5px; color: var(--cinza); font-weight: 300; margin-bottom: 30px; line-height: 1.6; }
+  .login-form .field { margin-bottom: 20px; }
+  .login-error {
+    display: none; font-size: 12px; color: var(--erro); background: rgba(163,36,59,.08);
+    padding: 10px 12px; margin-bottom: 18px; border-left: 3px solid var(--erro);
+  }
+  .login-error.show { display: block; }
+  .login-hint { margin-top: 22px; font-size: 11px; color: #aaa; line-height: 1.7; }
+  .demo-flag {
+    display: inline-block; margin-bottom: 22px; font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; font-weight: 600; color: var(--dourado-soft); background: var(--vinho-deep);
+    padding: 6px 12px;
+  }
+
+  /* ===== campos padrão (mesma linguagem do site: linha inferior) ===== */
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field label { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: #888; }
+  .field .req { color: var(--vinho); }
+  .field input[type="text"],
+  .field input[type="email"],
+  .field input[type="password"],
+  .field input[type="number"],
+  .field input[type="url"],
+  .field select,
+  .field textarea {
+    appearance: none; -webkit-appearance: none; border: none;
+    border-bottom: 1.5px solid rgba(0,0,0,.18); background: transparent;
+    padding: 10px 2px; font-size: 14px; color: var(--preto); outline: none;
+    transition: border-color .25s ease; width: 100%; font-weight: 400;
+  }
+  .field textarea { border: 1.5px solid rgba(0,0,0,.14); padding: 12px; resize: vertical; min-height: 90px; }
+  .field select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0 L5 6 L10 0 Z' fill='%236F1042'/></svg>");
+    background-repeat: no-repeat; background-position: right 4px center; padding-right: 18px;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--vinho); }
+  .field input::placeholder, .field textarea::placeholder { color: #b3b3b3; font-weight: 300; }
+  .field-hint { font-size: 10.5px; color: #aaa; }
+  .field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--erro); }
+  .field-error { font-size: 10.5px; color: var(--erro); display: none; }
+  .field.invalid .field-error { display: block; }
+
+  .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 26px; }
+  .field-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .field-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .field.span-2 { grid-column: span 2; }
+
+  .toggle-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; cursor: pointer; user-select: none; }
+  .toggle-row input { display: none; }
+  .toggle-box {
+    width: 18px; height: 18px; border: 1.5px solid rgba(0,0,0,.28); flex: none;
+    display: flex; align-items: center; justify-content: center; transition: all .2s ease;
+  }
+  .toggle-row input:checked + .toggle-box { background: var(--vinho); border-color: var(--vinho); }
+  .toggle-box svg { width: 11px; height: 11px; stroke: var(--branco); stroke-width: 3; opacity: 0; transition: opacity .15s ease; }
+  .toggle-row input:checked + .toggle-box svg { opacity: 1; }
+  .toggle-row span.lbl { font-size: 13px; }
+
+  /* =========================================================
+     TOPBAR ADMIN
+     ========================================================= */
+  .admin-topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 8vw; background: var(--branco); box-shadow: 0 1px 0 var(--linha);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .topbar-left .mono { width: 26px; }
+  .topbar-left .nav-wordmark { font-family: var(--serif); font-size: 16px; color: var(--vinho); }
+  .admin-badge {
+    font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700;
+    color: var(--vinho-deep); background: var(--dourado-soft); padding: 4px 10px;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 22px; }
+  .topbar-user { font-size: 12px; color: #777; }
+  .topbar-user strong { color: var(--preto); font-weight: 600; }
+  .link-site { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--vinho); border-bottom: 1px solid transparent; }
+  .link-site:hover { border-color: var(--vinho); }
+  .btn-logout {
+    background: none; border: none; cursor: pointer; font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: #999; font-weight: 600; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-logout:hover { color: var(--erro); }
+
+  /* =========================================================
+     MAIN
+     ========================================================= */
+  .admin-main { padding: 108px 8vw 100px; max-width: 1500px; margin: 0 auto; }
+  .admin-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; margin-bottom: 36px; }
+  .admin-header h1 { font-size: 30px; }
+  .admin-header p { font-size: 13px; color: var(--cinza); font-weight: 300; margin-top: 6px; }
+  .header-stats { display: flex; gap: 30px; }
+  .stat { text-align: right; }
+  .stat .num { font-family: var(--serif); font-size: 26px; color: var(--vinho); }
+  .stat .lbl { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #999; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end;
+    background: var(--branco); padding: 22px 26px; margin-bottom: 28px; box-shadow: 0 1px 0 var(--linha);
+  }
+  .toolbar .field.search { flex: 1 1 240px; }
+  .toolbar .field.filter { flex: 0 1 180px; }
+  .toolbar-spacer { flex: 1; }
+
+  /* ===== tabela ===== */
+  .table-wrap { background: var(--branco); box-shadow: 0 1px 0 var(--linha); overflow-x: auto; }
+  table.admin-table { width: 100%; border-collapse: collapse; min-width: 920px; }
+  .admin-table thead th {
+    text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: #999; font-weight: 600; padding: 16px 18px; border-bottom: 1px solid var(--linha);
+    white-space: nowrap;
+  }
+  .admin-table tbody td { padding: 14px 18px; border-bottom: 1px solid var(--linha); vertical-align: middle; }
+  .admin-table tbody tr:hover { background: #fbf8f9; }
+  .admin-table tbody tr:last-child td { border-bottom: none; }
+  .cell-thumb { width: 56px; height: 56px; object-fit: cover; background: #eee; flex: none; }
+  .cell-thumb.empty { display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 9px; text-align: center; }
+  .cell-title-wrap { display: flex; align-items: center; gap: 14px; }
+  .cell-title .ttl { font-family: var(--serif); font-size: 15px; }
+  .cell-title .cod { font-size: 10.5px; color: #aaa; letter-spacing: .04em; }
+  .cell-price { font-family: var(--serif); color: var(--vinho); font-size: 14.5px; white-space: nowrap; }
+  .cell-muted { color: #888; font-size: 13px; }
+
+  .status-badge {
+    display: inline-block; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+    font-weight: 700; padding: 5px 10px; border: 1px solid; white-space: nowrap;
+  }
+  .status-badge[data-s="Disponível"] { color: #2f7a4d; border-color: #2f7a4d; background: rgba(47,122,77,.06); }
+  .status-badge[data-s="Reservado"] { color: var(--dourado); border-color: var(--dourado); background: rgba(238,172,92,.1); }
+  .status-badge[data-s="Vendido"], .status-badge[data-s="Alugado"] { color: var(--vinho); border-color: var(--vinho); background: rgba(111,16,66,.06); }
+  .status-badge[data-s="Inativo"] { color: #aaa; border-color: #ccc; background: #fafafa; }
+
+  .star-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #ddd; }
+  .star-btn.on { color: var(--dourado); }
+  .star-btn svg { width: 18px; height: 18px; stroke-width: 1.6; }
+  .star-btn.on svg { fill: var(--dourado); }
+
+  .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .icon-btn {
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer; color: #999; transition: all .2s ease;
+  }
+  .icon-btn:hover { background: var(--cinza-claro); color: var(--vinho); }
+  .icon-btn.del:hover { color: var(--erro); }
+
+  .empty-admin { text-align: center; padding: 80px 20px; color: #999; }
+  .empty-admin .glyph { font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--vinho); margin-bottom: 10px; }
+  .empty-admin p { font-size: 13px; font-weight: 300; max-width: 360px; margin: 0 auto 22px; line-height: 1.7; }
+
+  /* =========================================================
+     DRAWER (formulário de imóvel)
+     ========================================================= */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(20,4,13,.55); z-index: 200;
+    opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility .3s ease;
+  }
+  .overlay.show { opacity: 1; visibility: visible; }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(680px, 100%);
+    background: var(--branco); z-index: 201; transform: translateX(100%);
+    transition: transform .4s cubic-bezier(.2,.7,.2,1); display: flex; flex-direction: column;
+    box-shadow: -12px 0 40px rgba(0,0,0,.2);
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header {
+    display: flex; align-items: center; justify-content: space-between; padding: 24px 32px;
+    border-bottom: 1px solid var(--linha); flex: none;
+  }
+  .drawer-header h2 { font-size: 20px; }
+  .drawer-close { background: none; border: none; cursor: pointer; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #999; }
+  .drawer-close:hover { color: var(--preto); }
+  .drawer-body { padding: 28px 32px 40px; overflow-y: auto; flex: 1; }
+  .drawer-footer {
+    padding: 18px 32px; border-top: 1px solid var(--linha); display: flex; justify-content: space-between;
+    align-items: center; gap: 14px; flex: none; background: var(--branco);
+  }
+  .drawer-footer .save-status { font-size: 11.5px; color: #999; }
+
+  .form-section { margin-bottom: 40px; }
+  .form-section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .form-section h3 { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: var(--vinho); font-family: var(--sans); }
+
+  .toggles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 20px; margin-top: 6px; }
+
+  .inline-add { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+  .inline-add select, .inline-add input { flex: 1; }
+  .inline-add-btn { flex: none; background: none; border: 1px dashed rgba(0,0,0,.25); width: 40px; height: 40px; cursor: pointer; color: var(--vinho); display:flex; align-items:center; justify-content:center; }
+  .inline-add-btn:hover { border-color: var(--vinho); background: var(--cinza-claro); }
+
+  .mini-panel { background: var(--cinza-claro); padding: 18px; margin-top: 12px; display: none; }
+  .mini-panel.show { display: block; }
+  .mini-panel .field-grid { gap: 14px 20px; margin-bottom: 14px; }
+  .mini-panel-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .chips-wrap { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .chip {
+    font-size: 12px; padding: 8px 16px; border: 1px solid rgba(0,0,0,.18); cursor: pointer;
+    transition: all .2s ease; user-select: none; color: #555;
+  }
+  .chip:hover { border-color: var(--vinho); }
+  .chip.selected { background: var(--vinho); border-color: var(--vinho); color: var(--branco); }
+
+  .upload-dropzone {
+    border: 1.5px dashed rgba(0,0,0,.22); padding: 30px 20px; text-align: center; cursor: pointer;
+    transition: all .2s ease; margin-top: 10px;
+  }
+  .upload-dropzone:hover, .upload-dropzone.drag { border-color: var(--vinho); background: rgba(111,16,66,.03); }
+  .upload-dropzone .icon { margin: 0 auto 10px; width: 24px; height: 24px; color: var(--vinho); }
+  .upload-dropzone p { font-size: 12px; color: #999; }
+  .upload-dropzone input { display: none; }
+
+  .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 14px; margin-top: 16px; }
+  .image-item { position: relative; background: var(--cinza-claro); }
+  .image-item .thumb { width: 100%; height: 100px; object-fit: cover; display: block; }
+  .image-item .cover-badge {
+    position: absolute; top: 6px; left: 6px; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase;
+    font-weight: 700; background: var(--dourado); color: var(--vinho-deep); padding: 3px 7px;
+  }
+  .image-item .img-actions { display: flex; gap: 2px; padding: 6px; }
+  .image-item .img-actions button {
+    flex: 1; background: var(--branco); border: 1px solid var(--linha); font-size: 9px; padding: 5px 2px;
+    cursor: pointer; color: #777; letter-spacing: .04em; text-transform: uppercase;
+  }
+  .image-item .img-actions button:hover { color: var(--vinho); border-color: var(--vinho); }
+  .image-item .img-actions button.rm:hover { color: var(--erro); border-color: var(--erro); }
+  .image-item.is-cover .thumb { outline: 2px solid var(--dourado); outline-offset: -2px; }
+  .image-item input.alt-input {
+    width: 100%; border: none; border-top: 1px solid var(--linha); background: var(--branco);
+    padding: 6px 8px; font-size: 10.5px; outline: none;
+  }
+
+  .video-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 14px; }
+  .video-row .field.type { flex: 0 0 150px; }
+  .video-row .field.url { flex: 1; }
+  .video-row .icon-btn { flex: none; margin-bottom: 2px; }
+
+  /* ===== confirmação genérica ===== */
+  .modal { position: fixed; z-index: 300; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .modal-card {
+    background: var(--branco); max-width: 400px; width: 100%; padding: 34px 32px;
+    box-shadow: 0 30px 70px rgba(0,0,0,.3);
+  }
+  .modal-card h3 { font-size: 18px; margin-bottom: 10px; }
+  .modal-card p { font-size: 13px; color: #777; line-height: 1.7; margin-bottom: 26px; font-weight: 300; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+
+  /* ===== toasts ===== */
+  .toast-stack { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; gap: 10px; }
+  .toast {
+    background: var(--branco); border-left: 4px solid var(--vinho); padding: 14px 20px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.18); font-size: 12.5px; min-width: 260px; max-width: 340px;
+    animation: toast-in .3s ease;
+  }
+  .toast.error { border-color: var(--erro); }
+  .toast strong { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+  .toast.error strong { color: var(--erro); }
+  .toast:not(.error) strong { color: var(--vinho); }
+  @keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid rgba(111,16,66,.15); border-top-color: var(--vinho);
+    border-radius: 50%; animation: spin .8s linear infinite; margin: 60px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 1000px) {
+    .field-grid, .field-grid.cols-3, .field-grid.cols-4 { grid-template-columns: repeat(2,1fr); }
+    .field.span-2 { grid-column: span 2; }
+    .toggles-grid { grid-template-columns: 1fr; }
+    .header-stats { display: none; }
+  }
+  @media (max-width: 680px) {
+    .admin-topbar { padding: 14px 6vw; }
+    .admin-main { padding: 96px 6vw 80px; }
+    .topbar-user { display: none; }
+    .field-grid, .field-grid.cols-3, .field-grid.cols-4 { grid-template-columns: 1fr; }
+    .field.span-2 { grid-column: span 1; }
+    .drawer-body, .drawer-header, .drawer-footer { padding-left: 22px; padding-right: 22px; }
+    table.admin-table { min-width: 720px; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     TELA DE LOGIN
+     ============================================================ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="mono">
+        <svg width="30" height="30" viewBox="0 0 100 100">
+          <g class="stroke" stroke-width="4">
+            <path d="M22 26 H78" /><path d="M50 26 V78" /><path d="M22 30 V70" />
+            <path d="M78 30 V70" /><path d="M22 32 L78 70" />
+          </g>
+        </svg>
+      </span>
+      <span class="login-wordmark">Tâmara Neres</span>
+    </div>
+    <div id="demo-flag" class="demo-flag hidden">Modo demonstração — dados locais</div>
+    <h1>Painel da corretora</h1>
+    <p class="sub">Acesso restrito para gestão do catálogo de imóveis. Entre com suas credenciais.</p>
+    <div class="login-error" id="login-error"></div>
+    <form class="login-form" id="login-form">
+      <div class="field"><label>E-mail</label><input type="email" id="login-email" autocomplete="username" required></div>
+      <div class="field"><label>Senha</label><input type="password" id="login-password" autocomplete="current-password" required></div>
+      <button type="submit" class="btn primary" style="width:100%; margin-top:6px;" id="login-btn">Entrar</button>
+    </form>
+    <p class="login-hint" id="login-hint"></p>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAINEL (visível após login)
+     ============================================================ -->
+<div id="admin-app" class="hidden">
+
+  <nav class="admin-topbar">
+    <div class="topbar-left">
+      <span class="mono">
+        <svg width="26" height="26" viewBox="0 0 100 100">
+          <g class="stroke" stroke-width="4">
+            <path d="M22 26 H78" /><path d="M50 26 V78" /><path d="M22 30 V70" />
+            <path d="M78 30 V70" /><path d="M22 32 L78 70" />
+          </g>
+        </svg>
+      </span>
+      <span class="nav-wordmark">Tâmara Neres</span>
+      <span class="admin-badge">Painel</span>
+    </div>
+    <div class="topbar-right">
+      <a href="index.html" class="link-site" target="_blank">Ver site ↗</a>
+      <span class="topbar-user">Olá, <strong id="user-email">—</strong></span>
+      <button class="btn-logout" id="btn-logout">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sair
+      </button>
+    </div>
+  </nav>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <div>
+        <span class="eyebrow dark">Gestão de catálogo</span>
+        <h1>Meus imóveis</h1>
+        <p>Cadastre, edite e remova imóveis do site. As alterações refletem no catálogo público em tempo real.</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Cadastrados</div></div>
+        <div class="stat"><div class="num" id="stat-destaque">0</div><div class="lbl">Em destaque</div></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="field search">
+        <label>Buscar</label>
+        <input type="text" id="tb-search" placeholder="Título ou código...">
+      </div>
+      <div class="field filter">
+        <label>Status</label>
+        <select id="tb-status"><option value="">Todos</option></select>
+      </div>
+      <div class="field filter">
+        <label>Bairro</label>
+        <select id="tb-bairro"><option value="">Todos</option></select>
+      </div>
+      <div class="toolbar-spacer"></div>
+      <button class="btn primary" id="btn-novo-imovel">
+        <svg class="icon" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M12 5v14M5 12h14"/></svg>
+        Novo imóvel
+      </button>
+    </div>
+
+    <div id="table-region">
+      <div class="spinner"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     DRAWER — formulário de imóvel
+     ============================================================ -->
+<div class="overlay" id="drawer-overlay"></div>
+<form class="drawer" id="drawer-imovel">
+  <div class="drawer-header">
+    <h2 id="drawer-title">Novo imóvel</h2>
+    <button type="button" class="drawer-close" id="drawer-close">
+      <svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+
+    <!-- INFORMAÇÕES BÁSICAS -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Informações básicas</h3></div>
+      <div class="divider-gold"></div>
+      <div class="field-grid">
+        <div class="field span-2" id="f-titulo-wrap">
+          <label>Título <span class="req">*</span></label>
+          <input type="text" id="f-titulo" placeholder="Ex: Cobertura Panorama Lourdes" required>
+          <span class="field-error">Informe um título.</span>
+        </div>
+        <div class="field">
+          <label>Código</label>
+          <input type="text" id="f-codigo" placeholder="Ex: TN-0142">
+        </div>
+        <div class="field">
+          <label>Slug (URL)</label>
+          <input type="text" id="f-slug" placeholder="gerado automaticamente">
+        </div>
+        <div class="field span-2">
+          <label>Descrição</label>
+          <textarea id="f-descricao" placeholder="Descreva os diferenciais do imóvel..."></textarea>
+        </div>
+        <div class="field">
+          <label>Tipo <span class="req">*</span></label>
+          <select id="f-tipo" required></select>
+        </div>
+        <div class="field">
+          <label>Finalidade <span class="req">*</span></label>
+          <select id="f-finalidade" required></select>
+        </div>
+        <div class="field">
+          <label>Status <span class="req">*</span></label>
+          <select id="f-status" required></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOCALIZAÇÃO -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Localização</h3></div>
+      <div class="divider-gold"></div>
+      <div class="field-grid">
+        <div class="field span-2">
+          <label>Bairro <span class="req">*</span></label>
+          <select id="f-bairro" required></select>
+        </div>
+      </div>
+      <div class="inline-add">
+        <button type="button" class="btn ghost small" id="btn-toggle-bairro">+ Cadastrar novo bairro</button>
+      </div>
+      <div class="mini-panel" id="panel-bairro">
+        <div class="field-grid">
+          <div class="field"><label>Nome</label><input type="text" id="nb-nome" placeholder="Ex: Belvedere"></div>
+          <div class="field"><label>Cidade</label><input type="text" id="nb-cidade" value="Belo Horizonte"></div>
+          <div class="field"><label>Estado (UF)</label><input type="text" id="nb-estado" value="MG" maxlength="2" style="text-transform:uppercase;"></div>
+          <div class="field"><label>Slug</label><input type="text" id="nb-slug" placeholder="gerado automaticamente"></div>
+        </div>
+        <div class="mini-panel-actions">
+          <button type="button" class="btn ghost small" id="btn-cancel-bairro">Cancelar</button>
+          <button type="button" class="btn primary small" id="btn-save-bairro">Salvar bairro</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VALORES -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Valores</h3></div>
+      <div class="divider-gold"></div>
+      <div class="field-grid cols-3">
+        <div class="field"><label>Preço (R$) <span class="req">*</span></label><input type="number" id="f-preco" min="0" step="1000" required></div>
+        <div class="field"><label>Condomínio (R$)</label><input type="number" id="f-condominio" min="0" step="10"></div>
+        <div class="field"><label>IPTU (R$)</label><input type="number" id="f-iptu" min="0" step="10"></div>
+      </div>
+    </div>
+
+    <!-- CARACTERÍSTICAS FÍSICAS -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Características físicas</h3></div>
+      <div class="divider-gold"></div>
+      <div class="field-grid cols-4">
+        <div class="field"><label>Área privativa (m²)</label><input type="number" id="f-area-privativa" min="0"></div>
+        <div class="field"><label>Área total (m²)</label><input type="number" id="f-area-total" min="0"></div>
+        <div class="field"><label>Área construção (m²)</label><input type="number" id="f-area-construcao" min="0"></div>
+        <div class="field"><label>Andar</label><input type="number" id="f-andar" min="0"></div>
+        <div class="field"><label>Quartos</label><input type="number" id="f-quartos" min="0"></div>
+        <div class="field"><label>Suítes</label><input type="number" id="f-suites" min="0"></div>
+        <div class="field"><label>Banheiros</label><input type="number" id="f-banheiros" min="0"></div>
+        <div class="field"><label>Vagas</label><input type="number" id="f-vagas" min="0"></div>
+      </div>
+    </div>
+
+    <!-- COMODIDADES / STATUS EXTRA -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Condições e destaque</h3></div>
+      <div class="divider-gold"></div>
+      <div class="toggles-grid">
+        <label class="toggle-row"><input type="checkbox" id="f-mobiliado"><span class="toggle-box"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="lbl">Mobiliado</span></label>
+        <label class="toggle-row"><input type="checkbox" id="f-financiamento"><span class="toggle-box"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="lbl">Aceita financiamento</span></label>
+        <label class="toggle-row"><input type="checkbox" id="f-permuta"><span class="toggle-box"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="lbl">Aceita permuta</span></label>
+        <label class="toggle-row"><input type="checkbox" id="f-destaque"><span class="toggle-box"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="lbl">Imóvel em destaque</span></label>
+      </div>
+      <div class="field" id="wrap-ordem-destaque" style="max-width:200px; margin-top:14px; display:none;">
+        <label>Ordem no destaque</label>
+        <input type="number" id="f-ordem-destaque" min="0">
+      </div>
+    </div>
+
+    <!-- CARACTERÍSTICAS / AMENIDADES -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Comodidades do imóvel</h3></div>
+      <div class="divider-gold"></div>
+      <div class="chips-wrap" id="chips-caracteristicas"></div>
+      <div class="inline-add">
+        <input type="text" id="nc-nome" placeholder="Nova comodidade (ex: Sauna)">
+        <button type="button" class="inline-add-btn" id="btn-add-caracteristica" title="Adicionar comodidade">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- IMAGENS -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Imagens</h3></div>
+      <div class="divider-gold"></div>
+      <div class="upload-dropzone" id="dropzone">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4M12 4 7 9M12 4l5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <p>Clique ou arraste imagens aqui para enviar</p>
+        <input type="file" id="file-input" accept="image/*" multiple>
+      </div>
+      <div class="image-grid" id="image-grid"></div>
+    </div>
+
+    <!-- VÍDEOS -->
+    <div class="form-section">
+      <div class="form-section-title"><h3>Vídeos</h3></div>
+      <div class="divider-gold"></div>
+      <div id="video-list"></div>
+      <button type="button" class="btn ghost small" id="btn-add-video">+ Adicionar vídeo</button>
+    </div>
+
+  </div>
+
+  <div class="drawer-footer">
+    <span class="save-status" id="save-status"></span>
+    <div style="display:flex; gap:12px;">
+      <button type="button" class="btn ghost" id="btn-cancel-drawer">Cancelar</button>
+      <button type="submit" class="btn primary" id="btn-save-imovel">Salvar imóvel</button>
+    </div>
+  </div>
+</form>
+
+<!-- ============================================================
+     MODAL DE CONFIRMAÇÃO (exclusão)
+     ============================================================ -->
+<div class="overlay" id="confirm-overlay"></div>
+<div class="modal hidden" id="confirm-modal">
+  <div class="modal-card">
+    <h3 id="confirm-title">Excluir imóvel</h3>
+    <p id="confirm-text">Esta ação não pode ser desfeita. Deseja continuar?</p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="confirm-cancel">Cancelar</button>
+      <button class="btn danger" id="confirm-ok">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+/* =====================================================================================
+   PAINEL DA CORRETORA — CONFIGURAÇÃO E CAMADA DE DADOS
+   -------------------------------------------------------------------------------------
+   Este arquivo é autocontido: HTML + CSS + JS. Ele funciona em dois modos:
+
+   1) DEMO_MODE = true  → usa localStorage do navegador como "banco de dados" fake,
+      para a corretora testar o painel imediatamente, sem precisar configurar nada.
+      Nenhum dado aqui é salvo no site público real.
+
+   2) DEMO_MODE = false → conecta ao Supabase de verdade (tabelas: imoveis, bairros,
+      caracteristicas, imovel_caracteristicas, imagens, videos), usando as credenciais
+      preenchidas abaixo. É este modo que deve estar ativo em produção.
+
+   IMPORTANTE (segurança): a chave usada aqui deve ser sempre a "anon public key" do
+   Supabase — nunca a "service_role key". A segurança de verdade não vem de esconder
+   este arquivo, e sim das políticas de Row Level Security (RLS) do banco, que devem
+   permitir leitura pública mas só permitir INSERT/UPDATE/DELETE para usuários
+   autenticados (a corretora). Veja o bloco "RLS_SETUP_SQL" ao final deste script
+   com o SQL pronto para colar no editor SQL do Supabase.
+   ===================================================================================== */
+
+const DEMO_MODE = true; // troque para false quando o Supabase estiver configurado abaixo
+
+const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SEU_PROJETO_SUPABASE";
+const SUPABASE_ANON_KEY = "COLE_AQUI_A_ANON_PUBLIC_KEY";
+const STORAGE_BUCKET = "imagens-imoveis"; // bucket público criado no Supabase Storage
+
+// Ajuste estas listas para bater exatamente com os enums do seu banco
+// (tipo_imovel, finalidade_imovel, status_imovel) caso os valores reais sejam diferentes.
+const TIPOS_IMOVEL = ["Apartamento", "Casa", "Cobertura", "Terreno", "Sala Comercial", "Sítio/Chácara"];
+const FINALIDADES = ["Venda", "Locação"];
+const STATUS_LIST = ["Disponível", "Reservado", "Vendido", "Alugado", "Inativo"];
+const TIPOS_VIDEO = ["YouTube", "Vimeo", "Tour Virtual", "Upload"];
+
+let supabaseClient = null;
+if (!DEMO_MODE && window.supabase) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+/* =====================================================================================
+   UTILITÁRIOS
+   ===================================================================================== */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+function slugify(str) {
+  return (str || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
+}
+
+function formatCurrency(value) {
+  const n = Number(value) || 0;
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+}
+
+function resizeImageFile(file, maxDim = 1280, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function toast(message, type = "success", title = null) {
+  const stack = document.getElementById("toast-stack");
+  const el = document.createElement("div");
+  el.className = "toast" + (type === "error" ? " error" : "");
+  el.innerHTML = `<strong>${title || (type === "error" ? "Ops" : "Feito")}</strong>${message}`;
+  stack.appendChild(el);
+  setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity .3s ease"; setTimeout(() => el.remove(), 300); }, 3800);
+}
+
+/* =====================================================================================
+   CAMADA DE DADOS (Store) — abstrai localStorage (demo) x Supabase (produção)
+   A UI abaixo nunca fala com localStorage ou supabase diretamente: só com Store.*
+   ===================================================================================== */
+const LS_KEYS = {
+  imoveis: "tn_admin_imoveis",
+  bairros: "tn_admin_bairros",
+  caracteristicas: "tn_admin_caracteristicas",
+  imagens: "tn_admin_imagens",
+  videos: "tn_admin_videos",
+  imovelCaracteristicas: "tn_admin_imovel_caracteristicas",
+};
+
+function lsGet(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } }
+function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+function seedDemoData() {
+  if (lsGet(LS_KEYS.bairros).length) return; // já semeado
+  const bairros = [
+    { id: 1, nome: "Belvedere", cidade: "Belo Horizonte", estado: "MG", slug: "belvedere" },
+    { id: 2, nome: "Savassi", cidade: "Belo Horizonte", estado: "MG", slug: "savassi" },
+    { id: 3, nome: "Lourdes", cidade: "Belo Horizonte", estado: "MG", slug: "lourdes" },
+    { id: 4, nome: "Mangabeiras", cidade: "Belo Horizonte", estado: "MG", slug: "mangabeiras" },
+    { id: 5, nome: "Cidade Jardim", cidade: "Belo Horizonte", estado: "MG", slug: "cidade-jardim" },
+  ];
+  const caracteristicas = ["Piscina", "Academia", "Salão de festas", "Portaria 24h", "Churrasqueira", "Elevador", "Varanda gourmet", "Pet place"]
+    .map((nome, i) => ({ id: i + 1, nome, icone: "" }));
+  const imoveis = [{
+    id: 1, codigo: "TN-0001", titulo: "Cobertura Panorama Lourdes", slug: "cobertura-panorama-lourdes",
+    descricao: "Cobertura duplex com vista panorâmica, acabamento de altíssimo padrão e ampla área de lazer privativa.",
+    tipo: "Cobertura", finalidade: "Venda", status: "Disponível",
+    preco: 4950000, condominio: 3200, iptu: 950,
+    area_privativa: 310, area_total: 420, area_construcao: 310,
+    quartos: 4, suites: 4, banheiros: 5, vagas: 3, andar: 18,
+    mobiliado: false, aceita_financiamento: true, aceita_permuta: false,
+    destaque: true, ordem_destaque: 1, bairro_id: 3, created_at: new Date().toISOString(),
+  }];
+  lsSet(LS_KEYS.bairros, bairros);
+  lsSet(LS_KEYS.caracteristicas, caracteristicas);
+  lsSet(LS_KEYS.imoveis, imoveis);
+  lsSet(LS_KEYS.imagens, [{ id: 1, imovel_id: 1, url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop", alt: "Fachada", ordem: 0, capa: true }]);
+  lsSet(LS_KEYS.videos, []);
+  lsSet(LS_KEYS.imovelCaracteristicas, [{ imovel_id: 1, caracteristica_id: 1 }, { imovel_id: 1, caracteristica_id: 4 }]);
+}
+
+const Store = {
+
+  auth: {
+    async signIn(email, password) {
+      if (DEMO_MODE) {
+        if (!email || !password) throw new Error("Informe e-mail e senha.");
+        const session = { email, ts: Date.now() };
+        sessionStorage.setItem("tn_admin_session", JSON.stringify(session));
+        return session;
+      }
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data.session;
+    },
+    async signOut() {
+      if (DEMO_MODE) { sessionStorage.removeItem("tn_admin_session"); return; }
+      await supabaseClient.auth.signOut();
+    },
+    async getSession() {
+      if (DEMO_MODE) {
+        const raw = sessionStorage.getItem("tn_admin_session");
+        return raw ? JSON.parse(raw) : null;
+      }
+      const { data } = await supabaseClient.auth.getSession();
+      return data.session;
+    },
+  },
+
+  async listBairros() {
+    if (DEMO_MODE) return lsGet(LS_KEYS.bairros);
+    const { data, error } = await supabaseClient.from("bairros").select("*").order("nome");
+    if (error) throw error;
+    return data;
+  },
+
+  async createBairro(payload) {
+    if (DEMO_MODE) {
+      const list = lsGet(LS_KEYS.bairros);
+      const row = { id: (list.at(-1)?.id || 0) + 1, ...payload };
+      list.push(row); lsSet(LS_KEYS.bairros, list);
+      return row;
+    }
+    const { data, error } = await supabaseClient.from("bairros").insert(payload).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async listCaracteristicas() {
+    if (DEMO_MODE) return lsGet(LS_KEYS.caracteristicas);
+    const { data, error } = await supabaseClient.from("caracteristicas").select("*").order("nome");
+    if (error) throw error;
+    return data;
+  },
+
+  async createCaracteristica(payload) {
+    if (DEMO_MODE) {
+      const list = lsGet(LS_KEYS.caracteristicas);
+      const row = { id: (list.at(-1)?.id || 0) + 1, ...payload };
+      list.push(row); lsSet(LS_KEYS.caracteristicas, list);
+      return row;
+    }
+    const { data, error } = await supabaseClient.from("caracteristicas").insert(payload).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async listImoveis() {
+    if (DEMO_MODE) {
+      const imoveis = lsGet(LS_KEYS.imoveis);
+      const imagens = lsGet(LS_KEYS.imagens);
+      const bairros = lsGet(LS_KEYS.bairros);
+      return imoveis.map(im => ({
+        ...im,
+        bairros: bairros.find(b => b.id === im.bairro_id) || null,
+        capa: imagens.find(i => i.imovel_id === im.id && i.capa) || imagens.find(i => i.imovel_id === im.id) || null,
+      })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    const { data, error } = await supabaseClient
+      .from("imoveis")
+      .select("*, bairros(id, nome, cidade, estado), imagens(id, url, capa)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(im => ({ ...im, capa: (im.imagens || []).find(i => i.capa) || (im.imagens || [])[0] || null }));
+  },
+
+  async getImovelCompleto(id) {
+    if (DEMO_MODE) {
+      const imovel = lsGet(LS_KEYS.imoveis).find(i => i.id === id);
+      const imagens = lsGet(LS_KEYS.imagens).filter(i => i.imovel_id === id).sort((a, b) => a.ordem - b.ordem);
+      const videos = lsGet(LS_KEYS.videos).filter(v => v.imovel_id === id);
+      const relCarac = lsGet(LS_KEYS.imovelCaracteristicas).filter(r => r.imovel_id === id).map(r => r.caracteristica_id);
+      return { ...imovel, imagens, videos, caracteristica_ids: relCarac };
+    }
+    const [{ data: imovel, error: e1 }, { data: imagens, error: e2 }, { data: videos, error: e3 }, { data: rel, error: e4 }] = await Promise.all([
+      supabaseClient.from("imoveis").select("*").eq("id", id).single(),
+      supabaseClient.from("imagens").select("*").eq("imovel_id", id).order("ordem"),
+      supabaseClient.from("videos").select("*").eq("imovel_id", id),
+      supabaseClient.from("imovel_caracteristicas").select("caracteristica_id").eq("imovel_id", id),
+    ]);
+    if (e1) throw e1; if (e2) throw e2; if (e3) throw e3; if (e4) throw e4;
+    return { ...imovel, imagens, videos, caracteristica_ids: rel.map(r => r.caracteristica_id) };
+  },
+
+  async saveImovel({ id, imovelData, imagens, videos, caracteristicaIds }) {
+    if (DEMO_MODE) {
+      const list = lsGet(LS_KEYS.imoveis);
+      let imovelId = id;
+      if (id) {
+        const idx = list.findIndex(i => i.id === id);
+        list[idx] = { ...list[idx], ...imovelData };
+      } else {
+        imovelId = (list.at(-1)?.id || 0) + 1;
+        list.push({ id: imovelId, created_at: new Date().toISOString(), ...imovelData });
+      }
+      lsSet(LS_KEYS.imoveis, list);
+
+      let imgList = lsGet(LS_KEYS.imagens).filter(i => i.imovel_id !== imovelId);
+      imagens.forEach((img, idx) => imgList.push({ id: img.id || uid(), imovel_id: imovelId, url: img.url, alt: img.alt || "", ordem: idx, capa: !!img.capa }));
+      lsSet(LS_KEYS.imagens, imgList);
+
+      let vidList = lsGet(LS_KEYS.videos).filter(v => v.imovel_id !== imovelId);
+      videos.forEach(v => vidList.push({ id: v.id || uid(), imovel_id: imovelId, tipo: v.tipo, url: v.url }));
+      lsSet(LS_KEYS.videos, vidList);
+
+      let relList = lsGet(LS_KEYS.imovelCaracteristicas).filter(r => r.imovel_id !== imovelId);
+      caracteristicaIds.forEach(cid => relList.push({ imovel_id: imovelId, caracteristica_id: cid }));
+      lsSet(LS_KEYS.imovelCaracteristicas, relList);
+
+      return imovelId;
+    }
+
+    // ---- modo produção (Supabase) ----
+    let imovelId = id;
+    if (id) {
+      const { error } = await supabaseClient.from("imoveis").update(imovelData).eq("id", id);
+      if (error) throw error;
+    } else {
+      const { data, error } = await supabaseClient.from("imoveis").insert(imovelData).select("id").single();
+      if (error) throw error;
+      imovelId = data.id;
+    }
+
+    // Estratégia simplificada: apaga e recria os filhos a cada save.
+    // Para uso intenso, considere mover isto para uma função Postgres (RPC)
+    // que faça tudo dentro de uma única transação atômica.
+    await supabaseClient.from("imagens").delete().eq("imovel_id", imovelId);
+    if (imagens.length) {
+      await supabaseClient.from("imagens").insert(
+        imagens.map((img, idx) => ({ imovel_id: imovelId, url: img.url, alt: img.alt || "", ordem: idx, capa: !!img.capa }))
+      );
+    }
+
+    await supabaseClient.from("videos").delete().eq("imovel_id", imovelId);
+    if (videos.length) {
+      await supabaseClient.from("videos").insert(videos.map(v => ({ imovel_id: imovelId, tipo: v.tipo, url: v.url })));
+    }
+
+    await supabaseClient.from("imovel_caracteristicas").delete().eq("imovel_id", imovelId);
+    if (caracteristicaIds.length) {
+      await supabaseClient.from("imovel_caracteristicas").insert(caracteristicaIds.map(cid => ({ imovel_id: imovelId, caracteristica_id: cid })));
+    }
+
+    return imovelId;
+  },
+
+  async deleteImovel(id) {
+    if (DEMO_MODE) {
+      lsSet(LS_KEYS.imoveis, lsGet(LS_KEYS.imoveis).filter(i => i.id !== id));
+      lsSet(LS_KEYS.imagens, lsGet(LS_KEYS.imagens).filter(i => i.imovel_id !== id));
+      lsSet(LS_KEYS.videos, lsGet(LS_KEYS.videos).filter(v => v.imovel_id !== id));
+      lsSet(LS_KEYS.imovelCaracteristicas, lsGet(LS_KEYS.imovelCaracteristicas).filter(r => r.imovel_id !== id));
+      return;
+    }
+    await supabaseClient.from("imagens").delete().eq("imovel_id", id);
+    await supabaseClient.from("videos").delete().eq("imovel_id", id);
+    await supabaseClient.from("imovel_caracteristicas").delete().eq("imovel_id", id);
+    const { error } = await supabaseClient.from("imoveis").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async toggleDestaque(id, value) {
+    if (DEMO_MODE) {
+      const list = lsGet(LS_KEYS.imoveis);
+      const idx = list.findIndex(i => i.id === id);
+      list[idx].destaque = value;
+      lsSet(LS_KEYS.imoveis, list);
+      return;
+    }
+    const { error } = await supabaseClient.from("imoveis").update({ destaque: value }).eq("id", id);
+    if (error) throw error;
+  },
+
+  async uploadImagem(file) {
+    if (DEMO_MODE) return await resizeImageFile(file);
+    const path = `${uid()}-${file.name}`;
+    const { error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(path, file);
+    if (error) throw error;
+    const { data } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    return data.publicUrl;
+  },
+};
+
+/* =====================================================================================
+   ESTADO EM MEMÓRIA
+   ===================================================================================== */
+const state = {
+  bairros: [],
+  caracteristicas: [],
+  imoveis: [],
+  editingId: null,
+  currentImages: [],
+  currentVideos: [],
+  selectedCaracteristicaIds: new Set(),
+};
+
+/* =====================================================================================
+   LOGIN
+   ===================================================================================== */
+const loginScreen = document.getElementById("login-screen");
+const adminApp = document.getElementById("admin-app");
+const loginForm = document.getElementById("login-form");
+const loginError = document.getElementById("login-error");
+const loginBtn = document.getElementById("login-btn");
+
+if (DEMO_MODE) {
+  document.getElementById("demo-flag").classList.remove("hidden");
+  document.getElementById("login-hint").textContent =
+    "Modo demonstração: use qualquer e-mail e senha para entrar e testar o painel. Nenhum dado real é alterado.";
+} else {
+  document.getElementById("login-hint").textContent =
+    "Acesso liberado apenas para usuários cadastrados no Supabase Auth pela administradora do site.";
+}
+
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  loginError.classList.remove("show");
+  loginBtn.disabled = true; loginBtn.textContent = "Entrando...";
+  try {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const session = await Store.auth.signIn(email, password);
+    await enterApp(session.email || session.user?.email || email);
+  } catch (err) {
+    loginError.textContent = err.message || "Não foi possível entrar. Verifique suas credenciais.";
+    loginError.classList.add("show");
+  } finally {
+    loginBtn.disabled = false; loginBtn.textContent = "Entrar";
+  }
+});
+
+document.getElementById("btn-logout").addEventListener("click", async () => {
+  await Store.auth.signOut();
+  location.reload();
+});
+
+async function enterApp(email) {
+  document.getElementById("user-email").textContent = email;
+  loginScreen.classList.add("hidden");
+  adminApp.classList.remove("hidden");
+  await bootstrapData();
+}
+
+(async function checkExistingSession() {
+  if (DEMO_MODE) seedDemoData();
+  const session = await Store.auth.getSession();
+  if (session) await enterApp(session.email || session.user?.email || "corretora");
+})();
+
+/* =====================================================================================
+   BOOTSTRAP DE DADOS E FILTROS
+   ===================================================================================== */
+async function bootstrapData() {
+  populateStaticSelects();
+  await Promise.all([reloadBairros(), reloadCaracteristicas()]);
+  await reloadImoveis();
+}
+
+function populateStaticSelects() {
+  fillSelect(document.getElementById("f-tipo"), TIPOS_IMOVEL, "Selecione...");
+  fillSelect(document.getElementById("f-finalidade"), FINALIDADES, "Selecione...");
+  fillSelect(document.getElementById("f-status"), STATUS_LIST, "Selecione...");
+  fillSelect(document.getElementById("tb-status"), STATUS_LIST, "Todos");
+}
+
+function fillSelect(select, items, placeholder) {
+  select.innerHTML = `<option value="">${placeholder}</option>` + items.map(i => `<option value="${i}">${i}</option>`).join("");
+}
+
+async function reloadBairros() {
+  state.bairros = await Store.listBairros();
+  const opts = state.bairros.map(b => `<option value="${b.id}">${b.nome}</option>`).join("");
+  document.getElementById("f-bairro").innerHTML = `<option value="">Selecione...</option>` + opts;
+  document.getElementById("tb-bairro").innerHTML = `<option value="">Todos</option>` + opts;
+}
+
+async function reloadCaracteristicas() {
+  state.caracteristicas = await Store.listCaracteristicas();
+  renderChips();
+}
+
+function renderChips() {
+  const wrap = document.getElementById("chips-caracteristicas");
+  wrap.innerHTML = state.caracteristicas.map(c => `
+    <div class="chip ${state.selectedCaracteristicaIds.has(c.id) ? "selected" : ""}" data-id="${c.id}">${c.nome}</div>
+  `).join("");
+  wrap.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const id = Number(chip.dataset.id);
+      if (state.selectedCaracteristicaIds.has(id)) state.selectedCaracteristicaIds.delete(id);
+      else state.selectedCaracteristicaIds.add(id);
+      chip.classList.toggle("selected");
+    });
+  });
+}
+
+async function reloadImoveis() {
+  const region = document.getElementById("table-region");
+  region.innerHTML = `<div class="spinner"></div>`;
+  try {
+    state.imoveis = await Store.listImoveis();
+    renderTable();
+  } catch (err) {
+    region.innerHTML = `<div class="empty-admin"><div class="glyph">Erro ao carregar</div><p>${err.message}</p></div>`;
+  }
+}
+
+/* =====================================================================================
+   TABELA / FILTROS
+   ===================================================================================== */
+function getFilteredImoveis() {
+  const term = document.getElementById("tb-search").value.trim().toLowerCase();
+  const status = document.getElementById("tb-status").value;
+  const bairroId = document.getElementById("tb-bairro").value;
+  return state.imoveis.filter(im => {
+    const matchesTerm = !term || im.titulo.toLowerCase().includes(term) || (im.codigo || "").toLowerCase().includes(term);
+    const matchesStatus = !status || im.status === status;
+    const matchesBairro = !bairroId || String(im.bairro_id) === String(bairroId);
+    return matchesTerm && matchesStatus && matchesBairro;
+  });
+}
+
+function renderTable() {
+  const region = document.getElementById("table-region");
+  const list = getFilteredImoveis();
+
+  document.getElementById("stat-total").textContent = state.imoveis.length;
+  document.getElementById("stat-destaque").textContent = state.imoveis.filter(i => i.destaque).length;
+
+  if (!list.length) {
+    region.innerHTML = `
+      <div class="empty-admin">
+        <div class="glyph">Nenhum imóvel encontrado</div>
+        <p>Ajuste os filtros ou cadastre o primeiro imóvel do catálogo.</p>
+        <button class="btn primary small" id="empty-add-btn">+ Novo imóvel</button>
+      </div>`;
+    document.getElementById("empty-add-btn").addEventListener("click", () => openDrawer());
+    return;
+  }
+
+  region.innerHTML = `
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead><tr>
+          <th></th><th>Imóvel</th><th>Bairro</th><th>Tipo</th><th>Preço</th><th>Status</th><th>Destaque</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${list.map(rowTemplate).join("")}
+        </tbody>
+      </table>
+    </div>`;
+
+  list.forEach(im => {
+    document.getElementById(`edit-${im.id}`).addEventListener("click", () => openDrawer(im.id));
+    document.getElementById(`del-${im.id}`).addEventListener("click", () => askDelete(im.id, im.titulo));
+    document.getElementById(`star-${im.id}`).addEventListener("click", async () => {
+      const newVal = !im.destaque;
+      try { await Store.toggleDestaque(im.id, newVal); await reloadImoveis(); }
+      catch (err) { toast(err.message, "error"); }
+    });
+  });
+}
+
+function rowTemplate(im) {
+  const bairroNome = im.bairros?.nome || "—";
+  const capaUrl = im.capa?.url || null;
+  return `
+    <tr>
+      <td>${capaUrl ? `<img class="cell-thumb" src="${capaUrl}" alt="">` : `<div class="cell-thumb empty">sem foto</div>`}</td>
+      <td>
+        <div class="cell-title">
+          <div class="ttl">${im.titulo}</div>
+          <div class="cod">${im.codigo || "sem código"}</div>
+        </div>
+      </td>
+      <td class="cell-muted">${bairroNome}</td>
+      <td class="cell-muted">${im.tipo || "—"}</td>
+      <td class="cell-price">${formatCurrency(im.preco)}</td>
+      <td><span class="status-badge" data-s="${im.status}">${im.status}</span></td>
+      <td>
+        <button class="star-btn ${im.destaque ? "on" : ""}" id="star-${im.id}" title="Destacar imóvel">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+        </button>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" id="edit-${im.id}" title="Editar">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+          <button class="icon-btn del" id="del-${im.id}" title="Excluir">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+["tb-search", "tb-status", "tb-bairro"].forEach(id => {
+  document.getElementById(id).addEventListener("input", renderTable);
+  document.getElementById(id).addEventListener("change", renderTable);
+});
+
+/* =====================================================================================
+   DRAWER — abrir / fechar / preencher
+   ===================================================================================== */
+const drawer = document.getElementById("drawer-imovel");
+const drawerOverlay = document.getElementById("drawer-overlay");
+
+function closeDrawer() {
+  drawer.classList.remove("open");
+  drawerOverlay.classList.remove("show");
+}
+document.getElementById("drawer-close").addEventListener("click", closeDrawer);
+document.getElementById("btn-cancel-drawer").addEventListener("click", closeDrawer);
+drawerOverlay.addEventListener("click", closeDrawer);
+
+document.getElementById("btn-novo-imovel").addEventListener("click", () => openDrawer());
+
+async function openDrawer(id = null) {
+  state.editingId = id;
+  state.currentImages = [];
+  state.currentVideos = [];
+  state.selectedCaracteristicaIds = new Set();
+  drawer.reset();
+  document.getElementById("wrap-ordem-destaque").style.display = "none";
+  document.getElementById("save-status").textContent = "";
+
+  document.getElementById("drawer-title").textContent = id ? "Editar imóvel" : "Novo imóvel";
+
+  if (id) {
+    document.getElementById("save-status").textContent = "Carregando...";
+    try {
+      const full = await Store.getImovelCompleto(id);
+      fillForm(full);
+    } catch (err) {
+      toast(err.message, "error");
+      return;
+    }
+    document.getElementById("save-status").textContent = "";
+  } else {
+    renderChips();
+    renderImageGrid();
+    renderVideoList();
+  }
+
+  drawer.classList.add("open");
+  drawerOverlay.classList.add("show");
+}
+
+function fillForm(im) {
+  document.getElementById("f-titulo").value = im.titulo || "";
+  document.getElementById("f-codigo").value = im.codigo || "";
+  document.getElementById("f-slug").value = im.slug || "";
+  document.getElementById("f-descricao").value = im.descricao || "";
+  document.getElementById("f-tipo").value = im.tipo || "";
+  document.getElementById("f-finalidade").value = im.finalidade || "";
+  document.getElementById("f-status").value = im.status || "";
+  document.getElementById("f-bairro").value = im.bairro_id || "";
+  document.getElementById("f-preco").value = im.preco ?? "";
+  document.getElementById("f-condominio").value = im.condominio ?? "";
+  document.getElementById("f-iptu").value = im.iptu ?? "";
+  document.getElementById("f-area-privativa").value = im.area_privativa ?? "";
+  document.getElementById("f-area-total").value = im.area_total ?? "";
+  document.getElementById("f-area-construcao").value = im.area_construcao ?? "";
+  document.getElementById("f-andar").value = im.andar ?? "";
+  document.getElementById("f-quartos").value = im.quartos ?? "";
+  document.getElementById("f-suites").value = im.suites ?? "";
+  document.getElementById("f-banheiros").value = im.banheiros ?? "";
+  document.getElementById("f-vagas").value = im.vagas ?? "";
+  document.getElementById("f-mobiliado").checked = !!im.mobiliado;
+  document.getElementById("f-financiamento").checked = !!im.aceita_financiamento;
+  document.getElementById("f-permuta").checked = !!im.aceita_permuta;
+  document.getElementById("f-destaque").checked = !!im.destaque;
+  document.getElementById("f-ordem-destaque").value = im.ordem_destaque ?? "";
+  document.getElementById("wrap-ordem-destaque").style.display = im.destaque ? "block" : "none";
+
+  state.currentImages = (im.imagens || []).map(i => ({ ...i }));
+  state.currentVideos = (im.videos || []).map(v => ({ ...v }));
+  state.selectedCaracteristicaIds = new Set(im.caracteristica_ids || []);
+
+  renderChips();
+  renderImageGrid();
+  renderVideoList();
+}
+
+document.getElementById("f-destaque").addEventListener("change", (e) => {
+  document.getElementById("wrap-ordem-destaque").style.display = e.target.checked ? "block" : "none";
+});
+
+// slug automático a partir do título (só sugere se o campo slug estiver vazio)
+document.getElementById("f-titulo").addEventListener("input", (e) => {
+  const slugField = document.getElementById("f-slug");
+  if (!slugField.dataset.touched) slugField.value = slugify(e.target.value);
+});
+document.getElementById("f-slug").addEventListener("input", (e) => { e.target.dataset.touched = "1"; });
+
+/* ===== novo bairro inline ===== */
+const panelBairro = document.getElementById("panel-bairro");
+document.getElementById("btn-toggle-bairro").addEventListener("click", () => panelBairro.classList.add("show"));
+document.getElementById("btn-cancel-bairro").addEventListener("click", () => panelBairro.classList.remove("show"));
+document.getElementById("nb-nome").addEventListener("input", (e) => {
+  document.getElementById("nb-slug").value = slugify(e.target.value);
+});
+document.getElementById("btn-save-bairro").addEventListener("click", async () => {
+  const nome = document.getElementById("nb-nome").value.trim();
+  if (!nome) { toast("Informe o nome do bairro.", "error"); return; }
+  try {
+    const row = await Store.createBairro({
+      nome, cidade: document.getElementById("nb-cidade").value.trim() || "Belo Horizonte",
+      estado: (document.getElementById("nb-estado").value.trim() || "MG").toUpperCase().slice(0, 2),
+      slug: document.getElementById("nb-slug").value.trim() || slugify(nome),
+    });
+    await reloadBairros();
+    document.getElementById("f-bairro").value = row.id;
+    panelBairro.classList.remove("show");
+    document.getElementById("nb-nome").value = ""; document.getElementById("nb-slug").value = "";
+    toast("Bairro cadastrado com sucesso.");
+  } catch (err) { toast(err.message, "error"); }
+});
+
+/* ===== nova característica inline ===== */
+document.getElementById("btn-add-caracteristica").addEventListener("click", async () => {
+  const input = document.getElementById("nc-nome");
+  const nome = input.value.trim();
+  if (!nome) return;
+  try {
+    const row = await Store.createCaracteristica({ nome, icone: "" });
+    state.caracteristicas.push(row);
+    state.selectedCaracteristicaIds.add(row.id);
+    renderChips();
+    input.value = "";
+  } catch (err) { toast(err.message, "error"); }
+});
+
+/* =====================================================================================
+   IMAGENS — upload, capa, reordenar, remover
+   ===================================================================================== */
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("file-input");
+
+dropzone.addEventListener("click", () => fileInput.click());
+dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+dropzone.addEventListener("drop", (e) => {
+  e.preventDefault(); dropzone.classList.remove("drag");
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+
+async function handleFiles(fileList) {
+  const files = Array.from(fileList || []);
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) continue;
+    try {
+      const url = await Store.uploadImagem(file);
+      state.currentImages.push({ id: uid(), url, alt: "", capa: state.currentImages.length === 0 });
+    } catch (err) {
+      toast(`Falha ao enviar ${file.name}: ${err.message}`, "error");
+    }
+  }
+  renderImageGrid();
+  fileInput.value = "";
+}
+
+function renderImageGrid() {
+  const grid = document.getElementById("image-grid");
+  grid.innerHTML = state.currentImages.map((img, idx) => `
+    <div class="image-item ${img.capa ? "is-cover" : ""}" data-idx="${idx}">
+      ${img.capa ? `<span class="cover-badge">Capa</span>` : ""}
+      <img class="thumb" src="${img.url}" alt="${img.alt || ""}">
+      <input class="alt-input" placeholder="Texto alternativo" value="${img.alt || ""}" data-alt-idx="${idx}">
+      <div class="img-actions">
+        <button type="button" data-cover-idx="${idx}">Capa</button>
+        <button type="button" data-up-idx="${idx}" ${idx === 0 ? "disabled" : ""}>▲</button>
+        <button type="button" data-down-idx="${idx}" ${idx === state.currentImages.length - 1 ? "disabled" : ""}>▼</button>
+        <button type="button" class="rm" data-rm-idx="${idx}">Excluir</button>
+      </div>
+    </div>`).join("") || `<p style="font-size:12px;color:#aaa;padding:14px 0;">Nenhuma imagem adicionada ainda.</p>`;
+
+  grid.querySelectorAll("[data-cover-idx]").forEach(btn => btn.addEventListener("click", () => {
+    const idx = Number(btn.dataset.coverIdx);
+    state.currentImages.forEach((img, i) => img.capa = i === idx);
+    renderImageGrid();
+  }));
+  grid.querySelectorAll("[data-rm-idx]").forEach(btn => btn.addEventListener("click", () => {
+    const idx = Number(btn.dataset.rmIdx);
+    const wasCover = state.currentImages[idx].capa;
+    state.currentImages.splice(idx, 1);
+    if (wasCover && state.currentImages.length) state.currentImages[0].capa = true;
+    renderImageGrid();
+  }));
+  grid.querySelectorAll("[data-up-idx]").forEach(btn => btn.addEventListener("click", () => {
+    const idx = Number(btn.dataset.upIdx);
+    [state.currentImages[idx - 1], state.currentImages[idx]] = [state.currentImages[idx], state.currentImages[idx - 1]];
+    renderImageGrid();
+  }));
+  grid.querySelectorAll("[data-down-idx]").forEach(btn => btn.addEventListener("click", () => {
+    const idx = Number(btn.dataset.downIdx);
+    [state.currentImages[idx + 1], state.currentImages[idx]] = [state.currentImages[idx], state.currentImages[idx + 1]];
+    renderImageGrid();
+  }));
+  grid.querySelectorAll("[data-alt-idx]").forEach(inp => inp.addEventListener("input", () => {
+    state.currentImages[Number(inp.dataset.altIdx)].alt = inp.value;
+  }));
+}
+
+/* =====================================================================================
+   VÍDEOS
+   ===================================================================================== */
+document.getElementById("btn-add-video").addEventListener("click", () => {
+  state.currentVideos.push({ id: uid(), tipo: TIPOS_VIDEO[0], url: "" });
+  renderVideoList();
+});
+
+function renderVideoList() {
+  const wrap = document.getElementById("video-list");
+  wrap.innerHTML = state.currentVideos.map((v, idx) => `
+    <div class="video-row" data-idx="${idx}">
+      <div class="field type"><label>Tipo</label>
+        <select data-vtipo-idx="${idx}">${TIPOS_VIDEO.map(t => `<option ${t === v.tipo ? "selected" : ""}>${t}</option>`).join("")}</select>
+      </div>
+      <div class="field url"><label>URL</label><input type="url" placeholder="https://..." value="${v.url || ""}" data-vurl-idx="${idx}"></div>
+      <button type="button" class="icon-btn del" data-vrm-idx="${idx}" title="Remover">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`).join("") || `<p style="font-size:12px;color:#aaa;">Nenhum vídeo adicionado.</p>`;
+
+  wrap.querySelectorAll("[data-vtipo-idx]").forEach(sel => sel.addEventListener("change", () => {
+    state.currentVideos[Number(sel.dataset.vtipoIdx)].tipo = sel.value;
+  }));
+  wrap.querySelectorAll("[data-vurl-idx]").forEach(inp => inp.addEventListener("input", () => {
+    state.currentVideos[Number(inp.dataset.vurlIdx)].url = inp.value;
+  }));
+  wrap.querySelectorAll("[data-vrm-idx]").forEach(btn => btn.addEventListener("click", () => {
+    state.currentVideos.splice(Number(btn.dataset.vrmIdx), 1);
+    renderVideoList();
+  }));
+}
+
+/* =====================================================================================
+   SALVAR IMÓVEL
+   ===================================================================================== */
+drawer.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const titulo = document.getElementById("f-titulo").value.trim();
+  const tipo = document.getElementById("f-tipo").value;
+  const finalidade = document.getElementById("f-finalidade").value;
+  const status = document.getElementById("f-status").value;
+  const bairroId = document.getElementById("f-bairro").value;
+  const preco = document.getElementById("f-preco").value;
+
+  let hasError = false;
+  document.getElementById("f-titulo-wrap").classList.toggle("invalid", !titulo);
+  if (!titulo || !tipo || !finalidade || !status || !bairroId || preco === "") hasError = true;
+
+  if (hasError) { toast("Preencha os campos obrigatórios (título, tipo, finalidade, status, bairro e preço).", "error"); return; }
+
+  const saveBtn = document.getElementById("btn-save-imovel");
+  saveBtn.disabled = true; saveBtn.textContent = "Salvando...";
+  document.getElementById("save-status").textContent = "Salvando alterações...";
+
+  const num = (v) => v === "" || v === null || v === undefined ? null : Number(v);
+
+  const imovelData = {
+    titulo,
+    codigo: document.getElementById("f-codigo").value.trim() || null,
+    slug: document.getElementById("f-slug").value.trim() || slugify(titulo),
+    descricao: document.getElementById("f-descricao").value.trim() || null,
+    tipo, finalidade, status,
+    bairro_id: Number(bairroId),
+    preco: num(preco),
+    condominio: num(document.getElementById("f-condominio").value),
+    iptu: num(document.getElementById("f-iptu").value),
+    area_privativa: num(document.getElementById("f-area-privativa").value),
+    area_total: num(document.getElementById("f-area-total").value),
+    area_construcao: num(document.getElementById("f-area-construcao").value),
+    andar: num(document.getElementById("f-andar").value),
+    quartos: num(document.getElementById("f-quartos").value),
+    suites: num(document.getElementById("f-suites").value),
+    banheiros: num(document.getElementById("f-banheiros").value),
+    vagas: num(document.getElementById("f-vagas").value),
+    mobiliado: document.getElementById("f-mobiliado").checked,
+    aceita_financiamento: document.getElementById("f-financiamento").checked,
+    aceita_permuta: document.getElementById("f-permuta").checked,
+    destaque: document.getElementById("f-destaque").checked,
+    ordem_destaque: num(document.getElementById("f-ordem-destaque").value),
+  };
+
+  try {
+    await Store.saveImovel({
+      id: state.editingId,
+      imovelData,
+      imagens: state.currentImages,
+      videos: state.currentVideos.filter(v => v.url.trim()),
+      caracteristicaIds: [...state.selectedCaracteristicaIds],
+    });
+    toast(state.editingId ? "Imóvel atualizado com sucesso." : "Imóvel cadastrado com sucesso.");
+    closeDrawer();
+    await reloadImoveis();
+  } catch (err) {
+    toast(err.message || "Não foi possível salvar o imóvel.", "error");
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = "Salvar imóvel";
+    document.getElementById("save-status").textContent = "";
+  }
+});
+
+/* =====================================================================================
+   EXCLUSÃO (modal de confirmação)
+   ===================================================================================== */
+const confirmOverlay = document.getElementById("confirm-overlay");
+const confirmModal = document.getElementById("confirm-modal");
+let pendingDeleteId = null;
+
+function askDelete(id, titulo) {
+  pendingDeleteId = id;
+  document.getElementById("confirm-text").textContent = `Tem certeza que deseja excluir "${titulo}"? Esta ação não pode ser desfeita.`;
+  confirmOverlay.classList.add("show");
+  confirmModal.classList.remove("hidden");
+}
+function closeConfirm() {
+  confirmOverlay.classList.remove("show");
+  confirmModal.classList.add("hidden");
+  pendingDeleteId = null;
+}
+document.getElementById("confirm-cancel").addEventListener("click", closeConfirm);
+confirmOverlay.addEventListener("click", closeConfirm);
+document.getElementById("confirm-ok").addEventListener("click", async () => {
+  if (!pendingDeleteId) return;
+  try {
+    await Store.deleteImovel(pendingDeleteId);
+    toast("Imóvel excluído.");
+    closeConfirm();
+    await reloadImoveis();
+  } catch (err) {
+    toast(err.message, "error");
+  }
+});
+</script>
+
+<!--
+=========================================================================================
+RLS_SETUP_SQL — cole no SQL Editor do Supabase ao ligar o modo produção (DEMO_MODE=false)
+-----------------------------------------------------------------------------------------
+Objetivo: qualquer visitante do site pode LER os imóveis (catálogo público), mas só a
+corretora autenticada pode CRIAR, EDITAR ou EXCLUIR registros.
+
+-- 1) Ativar RLS em todas as tabelas do catálogo
+alter table imoveis enable row level security;
+alter table bairros enable row level security;
+alter table caracteristicas enable row level security;
+alter table imovel_caracteristicas enable row level security;
+alter table imagens enable row level security;
+alter table videos enable row level security;
+
+-- 2) Leitura pública (site institucional)
+create policy "leitura publica imoveis" on imoveis for select using (true);
+create policy "leitura publica bairros" on bairros for select using (true);
+create policy "leitura publica caracteristicas" on caracteristicas for select using (true);
+create policy "leitura publica imovel_caracteristicas" on imovel_caracteristicas for select using (true);
+create policy "leitura publica imagens" on imagens for select using (true);
+create policy "leitura publica videos" on videos for select using (true);
+
+-- 3) Escrita restrita a usuários autenticados (a corretora, cadastrada no Auth)
+create policy "escrita autenticada imoveis" on imoveis for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "escrita autenticada bairros" on bairros for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "escrita autenticada caracteristicas" on caracteristicas for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "escrita autenticada imovel_caracteristicas" on imovel_caracteristicas for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "escrita autenticada imagens" on imagens for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "escrita autenticada videos" on videos for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+-- 4) Storage: bucket público para leitura, upload restrito a autenticados
+--    (crie o bucket "imagens-imoveis" como público no painel do Supabase Storage)
+create policy "leitura publica storage imoveis" on storage.objects for select
+  using (bucket_id = 'imagens-imoveis');
+create policy "upload autenticado storage imoveis" on storage.objects for insert
+  with check (bucket_id = 'imagens-imoveis' and auth.role() = 'authenticated');
+create policy "exclusao autenticada storage imoveis" on storage.objects for delete
+  using (bucket_id = 'imagens-imoveis' and auth.role() = 'authenticated');
+
+-- 5) Cadastre a corretora em Authentication > Users (e-mail + senha).
+--    Nunca use a service_role key neste arquivo — apenas a anon public key.
+=========================================================================================
+-->
+
+</body>
+</html>
