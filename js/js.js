@@ -44,3 +44,21 @@ if ("IntersectionObserver" in window) {
     element.classList.add("in");
   });
 }
+
+const hamburger = document.getElementById("hamburger");
+
+if (hamburger && nav) {
+  hamburger.addEventListener("click", () => {
+    nav.classList.toggle("open");
+    hamburger.classList.toggle("active");
+  });
+
+  const navLinks = document.querySelectorAll(".nav-links a");
+
+  navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      nav.classList.remove("open");
+      hamburger.classList.remove("active");
+    });
+  });
+}
