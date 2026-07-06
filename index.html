@@ -11,6 +11,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="css/css.css">
   <link rel="icon" type="svg" sizes="16x16" href="css/imagens/SIMBOLO BRANCO.png">
+
 </head>
 
 <body>
@@ -137,60 +138,13 @@
       <p>Uma curadoria de imóveis de alto padrão, escolhidos por sua localização, arquitetura e potencial de
         valorização.</p>
     </div>
-    <div class="prop-grid">
 
-      <div class="prop-card reveal">
-        <div class="prop-media">
-          <img src="https://images.unsplash.com/photo-1600210492493-0946911123ea?q=80&w=1200&auto=format&fit=crop"
-            alt="Apartamento alto padrão Buritis">
-          <span class="prop-tag">Apartamento</span>
-          <div class="prop-overlay"><span class="prop-view">Ver detalhes</span></div>
-        </div>
-        <div class="prop-info">
-          <div>
-            <div class="loc">Belvedere · BH</div>
-            <div class="ttl">Residencial Alto Belvedere</div>
-            <div class="feat">4 suítes · 3 vagas · 280 m²</div>
-          </div>
-          <div class="price"><small>a partir de</small>R$ 3,4 M</div>
-        </div>
+    <div class="prop-grid" id="prop-grid">
+      <!-- cartões renderizados via JS a partir de PROPERTIES_DATA -->
+      <div class="empty-state" id="empty-state">
+
       </div>
 
-      <div class="prop-card reveal">
-        <div class="prop-media">
-          <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop"
-            alt="Cobertura de luxo Belo Horizonte">
-          <span class="prop-tag">Cobertura</span>
-          <div class="prop-overlay"><span class="prop-view">Ver detalhes</span></div>
-        </div>
-        <div class="prop-info">
-          <div>
-            <div class="loc">Buritis · BH</div>
-            <div class="ttl">Cobertura Vista Serra</div>
-            <div class="feat">5 suítes · 4 vagas · 420 m²</div>
-          </div>
-          <div class="price"><small>a partir de</small>R$ 6,8 M</div>
-        </div>
-      </div>
-
-      <div class="prop-card reveal">
-        <div class="prop-media">
-          <img src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop"
-            alt="Apartamento de luxo Belo Horizonte">
-          <span class="prop-tag">Apartamento</span>
-          <div class="prop-overlay"><span class="prop-view">Ver detalhes</span></div>
-        </div>
-        <div class="prop-info">
-          <div>
-            <div class="loc">Região Sul · BH</div>
-            <div class="ttl">Edifício Mirante Dourado</div>
-            <div class="feat">3 suítes · 2 vagas · 195 m²</div>
-          </div>
-          <div class="price"><small>a partir de</small>R$ 2,1 M</div>
-        </div>
-      </div>
-
-    </div>
   </section>
 
   <!-- ============ DIFERENCIAIS ============ -->
@@ -375,7 +329,8 @@
       </div>
     </div>
   </footer>
-  <script src="js/js.js"></script>
+  <script src="js/js.js" defer></script>
+  <script type="module" src="js/catalogo.js"></script>
 </body>
 
 </html>

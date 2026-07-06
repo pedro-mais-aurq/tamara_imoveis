@@ -1,24 +1,48 @@
 /* =========================================================================
-     CATÁLOGO DE IMÓVEIS — CARCAÇA / SHELL
-     -------------------------------------------------------------------------
-     Este bloco simula a fonte de dados que, na versão final, virá do Supabase
-     via Next.js (ex.: server component / route handler fazendo
-     `supabase.from('imoveis').select('*')`).
+   CATÁLOGO DE IMÓVEIS — VERSÃO COMPATÍVEL COM INDEX + CATÁLOGO COMPLETO
+   -------------------------------------------------------------------------
+   Este arquivo funciona em dois contextos:
 
-     Para plugar o backend real:
-     1. Substitua PROPERTIES_DATA por uma chamada assíncrona ao Supabase.
-     2. Mantenha o mesmo formato de objeto (name, type, bairro, price, etc.)
-        ou ajuste renderCard() conforme o schema da tabela.
-     3. As funções applyFilters()/renderGrid() já trabalham sobre um array
-        em memória — basta alimentá-las com o resultado da query.
-     ========================================================================= */
+   1. index.html
+      - Precisa apenas de #prop-grid ou .prop-grid
+      - Renderiza no máximo 3 imóveis
+
+   2. Página completa de catálogo
+      - Usa #prop-grid
+      - Usa filtros:
+        #empty-state
+        #search-input
+        #bairro-select
+        #preco-select
+        #clear-filters
+        #results-meta
+
+   IMPORTANTE:
+   Como este arquivo usa import/export, o script no HTML deve ser carregado com:
+
+   <script type="module" src="./js/catalogo.js"></script>
+   ========================================================================= */
 
 import { buscarImoveisCatalogo } from "../supabase/imoveisService.js";
 
+console.log("catalogo.js carregado");
 
 let PROPERTIES_DATA = [];
 
-const gridEl = document.getElementById("prop-grid");
+const HOME_LIMIT = 3;
+
+// Se sua página individual for rota Next.js, troque para "/imovel".
+// Se for HTML estático, mantenha "/imovel.html".
+const DETALHE_IMOVEL_PATH = "/imovel.html";
+
+/* =========================================================================
+   ELEMENTOS DO DOM
+   ========================================================================= */
+
+const gridEl =
+    document.getElementById("prop-grid") ||
+    document.querySelector(".prop-grid");
+
 const emptyStateEl = document.getElementById("empty-state");
 const searchInput = document.getElementById("search-input");
 const bairroSelect = document.getElementById("bairro-select");
@@ -26,7 +50,7 @@ const precoSelect = document.getElementById("preco-select");
 const clearBtn = document.getElementById("clear-filters");
 const resultsMeta = document.getElementById("results-meta");
 
-const catalogoExiste =
+const catalogoCompletoExiste =
     gridEl &&
     emptyStateEl &&
     searchInput &&
@@ -34,6 +58,13 @@ const catalogoExiste =
     precoSelect &&
     clearBtn &&
     resultsMeta;
+
+const apenasGridExiste =
+    gridEl && !catalogoCompletoExiste;
+
+/* =========================================================================
+   HELPERS
+   ========================================================================= */
 
 function formatPrice(value) {
     const numericValue = Number(value);
@@ -48,48 +79,67 @@ function formatPrice(value) {
     }) + " M";
 }
 
-function populateBairroOptions() {
-    bairroSelect.innerHTML = `<option value="">Todos os bairros</option>`;
+function normalizarTexto(value) {
+    return String(value || "")
+        .trim()
+        .toLowerCase();
+}
 
-    const bairros = [...new Set(PROPERTIES_DATA.map(p => p.bairro))].sort();
 
-    bairros.forEach((bairro) => {
-        const opt = document.createElement("option");
-        opt.value = bairro;
-        opt.textContent = bairro;
-        bairroSelect.appendChild(opt);
+
+function getDetalheUrl(property) {
+    const detalheUrl = new URL(DETALHE_IMOVEL_PATH, window.location.href);
+
+    if (property?.slug) {
+        detalheUrl.searchParams.set("slug", property.slug);
+    } else if (property?.id) {
+        detalheUrl.searchParams.set("id", property.id);
+    }
+
+    return detalheUrl;
+}
+
+function limparCardsAntigos() {
+    if (!gridEl) return;
+
+    [...gridEl.querySelectorAll(".prop-card")].forEach((el) => {
+        el.remove();
     });
 }
 
-function renderCard(property) {
-    console.log("Imóvel no card:", property.id, property.name, property.slug);
+function animarCards() {
+    requestAnimationFrame(() => {
+        gridEl.querySelectorAll(".prop-card").forEach((el, i) => {
+            setTimeout(() => {
+                el.classList.add("show");
+            }, i * 40);
+        });
+    });
+}
 
+/* =========================================================================
+   CARD DO IMÓVEL
+   ========================================================================= */
+
+function renderCard(property) {
     const card = document.createElement("article");
     card.className = "prop-card";
     card.dataset.id = property.id;
 
-  const link = document.createElement("a");
-link.className = "prop-card-link";
+    const link = document.createElement("a");
+    link.className = "prop-card-link";
 
-const detalheUrl = new URL("/imovel", window.location.origin);
+    const detalheUrl = getDetalheUrl(property);
 
-if (property.slug) {
-    detalheUrl.searchParams.set("slug", property.slug);
-} else {
-    detalheUrl.searchParams.set("id", property.id);
-}
+    link.href = detalheUrl.href;
 
-link.href = detalheUrl.href;
+    link.addEventListener("click", (event) => {
+        event.preventDefault();
 
-link.addEventListener("click", (event) => {
-    event.preventDefault();
+        console.log("Navegando para:", detalheUrl.href);
 
-    console.log("Navegando para:", detalheUrl.href);
-
-    window.location.assign(detalheUrl.href);
-});
-console.log("Property usada no card:", property);
-console.log("Href final do card:", link.href);
+        window.location.assign(detalheUrl.href);
+    });
 
     const media = document.createElement("div");
     media.className = "prop-media";
@@ -111,6 +161,7 @@ console.log("Href final do card:", link.href);
     view.textContent = "Ver detalhes";
 
     overlay.appendChild(view);
+
     media.appendChild(image);
     media.appendChild(tag);
     media.appendChild(overlay);
@@ -147,7 +198,7 @@ console.log("Href final do card:", link.href);
     const small = document.createElement("small");
     small.textContent = "a partir de";
 
-    const priceText = document.createTextNode(formatPrice(Number(property.price) || 0));
+    const priceText = document.createTextNode(formatPrice(property.price));
 
     price.appendChild(small);
     price.appendChild(priceText);
@@ -163,61 +214,177 @@ console.log("Href final do card:", link.href);
     return card;
 }
 
-function applyFilters() {
-    const term = searchInput.value.trim().toLowerCase();
-    const bairro = bairroSelect.value;
-    const precoRange = precoSelect.value;
+/* =========================================================================
+   RENDERIZAÇÃO GENÉRICA
+   ========================================================================= */
 
-    let min = 0, max = Infinity;
-    if (precoRange) {
-        const [minStr, maxStr] = precoRange.split("-");
-        min = Number(minStr);
-        max = Number(maxStr);
+function renderGrid(properties, options = {}) {
+    const {
+        limit = null,
+        usarEmptyState = true,
+        atualizarMeta = true
+    } = options;
+
+    if (!gridEl) return;
+
+    limparCardsAntigos();
+
+    const lista = Array.isArray(properties) ? properties : [];
+    const listaLimitada = limit ? lista.slice(0, limit) : lista;
+
+    if (listaLimitada.length === 0) {
+        if (emptyStateEl && usarEmptyState) {
+            emptyStateEl.classList.add("show");
+        }
+
+        if (resultsMeta && atualizarMeta) {
+            resultsMeta.textContent = "Nenhum imóvel encontrado";
+        }
+
+        return;
     }
 
-    return PROPERTIES_DATA.filter(p => {
-        const matchesTerm = !term || p.name.toLowerCase().includes(term);
-        const matchesBairro = !bairro || p.bairro === bairro;
-        const matchesPreco = p.price >= min && p.price <= max;
+    if (emptyStateEl && usarEmptyState) {
+        emptyStateEl.classList.remove("show");
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    listaLimitada.forEach((property) => {
+        fragment.appendChild(renderCard(property));
+    });
+
+    if (emptyStateEl && gridEl.contains(emptyStateEl)) {
+        gridEl.insertBefore(fragment, emptyStateEl);
+    } else {
+        gridEl.appendChild(fragment);
+    }
+
+    animarCards();
+
+    if (resultsMeta && atualizarMeta) {
+        resultsMeta.innerHTML = listaLimitada.length === 1
+            ? `<strong>1</strong> imóvel encontrado`
+            : `<strong>${listaLimitada.length}</strong> imóveis encontrados`;
+    }
+}
+
+/* =========================================================================
+   FILTROS — SOMENTE CATÁLOGO COMPLETO
+   ========================================================================= */
+
+function populateBairroOptions() {
+    if (!bairroSelect) return;
+
+    bairroSelect.innerHTML = `<option value="">Todos os bairros</option>`;
+
+    const bairros = [
+        ...new Set(
+            PROPERTIES_DATA
+                .map((property) => property.bairro)
+                .filter(Boolean)
+        )
+    ].sort();
+
+    bairros.forEach((bairro) => {
+        const opt = document.createElement("option");
+        opt.value = bairro;
+        opt.textContent = bairro;
+        bairroSelect.appendChild(opt);
+    });
+}
+
+function applyFilters() {
+    const term = normalizarTexto(searchInput?.value);
+    const bairro = bairroSelect?.value || "";
+    const precoRange = precoSelect?.value || "";
+
+    let min = 0;
+    let max = Infinity;
+
+    if (precoRange) {
+        const [minStr, maxStr] = precoRange.split("-");
+
+        min = Number(minStr) || 0;
+        max = Number(maxStr) || Infinity;
+    }
+
+    return PROPERTIES_DATA.filter((property) => {
+        const name = normalizarTexto(property.name);
+        const propertyBairro = property.bairro || "";
+        const price = Number(property.price) || 0;
+
+        const matchesTerm = !term || name.includes(term);
+        const matchesBairro = !bairro || propertyBairro === bairro;
+        const matchesPreco = price >= min && price <= max;
+
         return matchesTerm && matchesBairro && matchesPreco;
     });
 }
 
-function renderGrid() {
+function renderGridFiltrado() {
     const filtered = applyFilters();
 
-    // Remove cartões antigos, mantendo o nó de estado vazio
-    [...gridEl.querySelectorAll(".prop-card")].forEach(el => el.remove());
-
-    if (filtered.length === 0) {
-        emptyStateEl.classList.add("show");
-    } else {
-        emptyStateEl.classList.remove("show");
-        const fragment = document.createDocumentFragment();
-        filtered.forEach(p => fragment.appendChild(renderCard(p)));
-        gridEl.insertBefore(fragment, emptyStateEl);
-
-        requestAnimationFrame(() => {
-            gridEl.querySelectorAll(".prop-card").forEach((el, i) => {
-                setTimeout(() => el.classList.add("show"), i * 40);
-            });
-        });
-    }
-
-    resultsMeta.innerHTML = filtered.length === 1
-        ? `<strong>1</strong> imóvel encontrado`
-        : `<strong>${filtered.length}</strong> imóveis encontrados`;
+    renderGrid(filtered, {
+        limit: null,
+        usarEmptyState: true,
+        atualizarMeta: true
+    });
 }
 
 function clearFilters() {
-    searchInput.value = "";
-    bairroSelect.value = "";
-    precoSelect.value = "";
-    renderGrid();
+    if (searchInput) searchInput.value = "";
+    if (bairroSelect) bairroSelect.value = "";
+    if (precoSelect) precoSelect.value = "";
+
+    renderGridFiltrado();
 }
 
-async function initCatalogo() {
-    if (!catalogoExiste) return;
+function inicializarEventosDeFiltro() {
+    if (!catalogoCompletoExiste) return;
+
+    searchInput.addEventListener("input", renderGridFiltrado);
+    bairroSelect.addEventListener("change", renderGridFiltrado);
+    precoSelect.addEventListener("change", renderGridFiltrado);
+    clearBtn.addEventListener("click", clearFilters);
+}
+
+/* =========================================================================
+   INIT — INDEX
+   ========================================================================= */
+
+async function initCatalogoIndex() {
+    if (!gridEl) return;
+
+    try {
+        PROPERTIES_DATA = await buscarImoveisCatalogo();
+
+        renderGrid(PROPERTIES_DATA, {
+            limit: HOME_LIMIT,
+            usarEmptyState: false,
+            atualizarMeta: false
+        });
+
+        console.log(`Index carregado com limite de ${HOME_LIMIT} imóveis.`);
+    } catch (error) {
+        console.error("Erro ao carregar imóveis no index:", error);
+
+        limparCardsAntigos();
+
+        const erro = document.createElement("p");
+        erro.className = "catalogo-erro";
+        erro.textContent = "Não foi possível carregar os imóveis no momento.";
+
+        gridEl.appendChild(erro);
+    }
+}
+
+/* =========================================================================
+   INIT — CATÁLOGO COMPLETO
+   ========================================================================= */
+
+async function initCatalogoCompleto() {
+    if (!catalogoCompletoExiste) return;
 
     resultsMeta.textContent = "Carregando imóveis...";
 
@@ -225,21 +392,44 @@ async function initCatalogo() {
         PROPERTIES_DATA = await buscarImoveisCatalogo();
 
         populateBairroOptions();
+        inicializarEventosDeFiltro();
+        renderGridFiltrado();
 
-        searchInput.addEventListener("input", renderGrid);
-        bairroSelect.addEventListener("change", renderGrid);
-        precoSelect.addEventListener("change", renderGrid);
-        clearBtn.addEventListener("click", clearFilters);
-
-        renderGrid();
+        console.log("Catálogo completo carregado.");
     } catch (error) {
         console.error("Erro ao inicializar catálogo:", error);
 
-        [...gridEl.querySelectorAll(".prop-card")].forEach((el) => el.remove());
+        limparCardsAntigos();
 
-        emptyStateEl.classList.add("show");
-        resultsMeta.textContent = "Não foi possível carregar os imóveis.";
+        if (emptyStateEl) {
+            emptyStateEl.classList.add("show");
+        }
+
+        if (resultsMeta) {
+            resultsMeta.textContent = "Não foi possível carregar os imóveis.";
+        }
     }
 }
 
-initCatalogo();
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+
+async function init() {
+    if (!gridEl) {
+        console.warn("Nenhum grid de imóveis encontrado na página.");
+        return;
+    }
+
+    if (catalogoCompletoExiste) {
+        await initCatalogoCompleto();
+        return;
+    }
+
+    if (apenasGridExiste) {
+        await initCatalogoIndex();
+        return;
+    }
+}
+
+init();

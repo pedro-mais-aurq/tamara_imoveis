@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Imóveis | Tâmara Neres Imóveis</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" type="svg" sizes="16x16" href="css/imagens/SIMBOLO BRANCO.png">
+  <link rel = "stylesheet" href="css/css.css">
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
@@ -133,87 +135,8 @@
       stroke-linecap: square;
     }
 
-    /* ===== Nav (de css.css) ===== */
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 8vw;
-      background: rgba(255, 255, 255, .92);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 1px 0 rgba(0, 0, 0, .06);
-    }
+ 
 
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .nav-logo .mono {
-      width: 30px;
-    }
-
-    .nav-logo .mono svg {
-      stroke: var(--vinho);
-    }
-
-    .nav-wordmark {
-      font-family: var(--serif);
-      font-size: 18px;
-      letter-spacing: .04em;
-      color: var(--vinho);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 44px;
-      align-items: center;
-    }
-
-    .nav-links a {
-      font-size: 12px;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--preto);
-      font-weight: 500;
-      position: relative;
-    }
-
-
-
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: -8px;
-      width: 0;
-      height: 1px;
-      background: var(--dourado);
-      transition: width .35s ease;
-    }
-
-
-    .nav-cta {
-      font-size: 11.5px;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      font-weight: 600;
-      padding: 11px 24px;
-      border: 1px solid var(--vinho);
-      color: var(--vinho);
-      transition: all .4s ease;
-    }
-
-    .nav-cta:hover {
-      background: var(--vinho);
-      color: var(--branco);
-    }
 
     /* =========================================================
        PAGE HEADER — variação enxuta do .hero para página interna
@@ -303,7 +226,7 @@
     }
 
     .field.search {
-      flex: 1 1 260px;
+      flex: 1 1 26px;
     }
 
     .field.bairro {
@@ -836,8 +759,8 @@
       <span>© Tâmara Neres Imóveis. Todos os direitos reservados.</span>
     </div>
   </footer>
-
+  <script type="module" src="js/catalogo.js"></script>
+  <script src="js/js.js"></script>
 </body>
-<script type="module" src="js/catalogo.js"></script>
 
 </html>

@@ -191,9 +191,6 @@
      transition: color .5s ease;
  }
 
- .nav-links a.active {
-     color: var(--vinho);
- }
 
  .nav-links a:hover::after,
  .nav-links a.active::after {
