@@ -13,7 +13,7 @@ import {
 } from "../supabase/imoveisService.js";
 
 const WHATSAPP_NUMERO = "5531982481194";
-const PLACEHOLDER_IMAGEM = "./imagens/placeholder-imovel.jpg";
+const PLACEHOLDER_IMAGEM = "./css/imagens/placeholder-imovel.jpg";
 
 // ============================================================
 // Estado da galeria / lightbox
