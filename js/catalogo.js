@@ -33,7 +33,7 @@ const HOME_LIMIT = 3;
 
 // Se sua página individual for rota Next.js, troque para "/imovel".
 // Se for HTML estático, mantenha "/imovel.html".
-const DETALHE_IMOVEL_PATH = "/imovel.html";
+const DETALHE_IMOVEL_PATH = "./imovel.html";
 
 /* =========================================================================
    ELEMENTOS DO DOM
