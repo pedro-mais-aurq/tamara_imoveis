@@ -16,6 +16,18 @@ const WHATSAPP_NUMERO = "5531982481194";
 const PLACEHOLDER_IMAGEM = "./imagens/placeholder-imovel.jpg";
 
 // ============================================================
+// Estado da galeria / lightbox
+// ============================================================
+
+// Lista completa de imagens do imóvel atualmente exibido
+// (não apenas as 5 miniaturas visíveis no grid).
+let imagensGaleriaAtual = [];
+
+const estadoLightbox = {
+  indice: 0,
+};
+
+// ============================================================
 // Utilidades
 // ============================================================
 
@@ -53,6 +65,216 @@ function montarLinkWhatsApp(imovel) {
 }
 
 // ============================================================
+// Lightbox (visualizador de imagens excedentes)
+// ============================================================
+
+function injetarEstilosLightbox() {
+  if (document.getElementById('tn-lightbox-estilos')) return;
+
+  const style = document.createElement('style');
+  style.id = 'tn-lightbox-estilos';
+  style.textContent = `
+    .imovel-galeria__item {
+      cursor: pointer;
+    }
+
+    body.tn-lightbox-open {
+      overflow: hidden;
+    }
+
+    .tn-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(10, 10, 10, 0.92);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tn-lightbox.is-aberto {
+      display: flex;
+    }
+
+    .tn-lightbox__conteudo {
+      position: relative;
+      max-width: 90vw;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tn-lightbox__imagem {
+      max-width: 90vw;
+      max-height: 78vh;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .tn-lightbox__contador {
+      color: #f2f2f2;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    .tn-lightbox__fechar {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: transparent;
+      border: none;
+      color: #f2f2f2;
+      font-size: 34px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .tn-lightbox__nav {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #f2f2f2;
+      font-size: 22px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+
+    .tn-lightbox__nav:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .tn-lightbox__nav--prev {
+      margin-right: 16px;
+    }
+
+    .tn-lightbox__nav--next {
+      margin-left: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .tn-lightbox__nav {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+
+      .tn-lightbox__fechar {
+        top: 12px;
+        right: 12px;
+        font-size: 30px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function garantirLightboxNoDOM() {
+  if (document.getElementById('tn-lightbox')) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'tn-lightbox';
+  overlay.className = 'tn-lightbox';
+  overlay.innerHTML = `
+    <button type="button" class="tn-lightbox__fechar" aria-label="Fechar">&times;</button>
+    <button type="button" class="tn-lightbox__nav tn-lightbox__nav--prev" aria-label="Imagem anterior">&#10094;</button>
+    <div class="tn-lightbox__conteudo">
+      <img class="tn-lightbox__imagem" src="" alt="">
+      <div class="tn-lightbox__contador"></div>
+    </div>
+    <button type="button" class="tn-lightbox__nav tn-lightbox__nav--next" aria-label="Próxima imagem">&#10095;</button>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('.tn-lightbox__fechar').addEventListener('click', fecharLightbox);
+  overlay.querySelector('.tn-lightbox__nav--prev').addEventListener('click', () => navegarLightbox(-1));
+  overlay.querySelector('.tn-lightbox__nav--next').addEventListener('click', () => navegarLightbox(1));
+
+  // Fecha ao clicar fora da imagem (no fundo escuro)
+  overlay.addEventListener('click', (evento) => {
+    if (evento.target === overlay) fecharLightbox();
+  });
+}
+
+function atualizarImagemLightbox() {
+  const overlay = document.getElementById('tn-lightbox');
+  if (!overlay) return;
+
+  const total = imagensGaleriaAtual.length;
+  const imagem = imagensGaleriaAtual[estadoLightbox.indice];
+
+  const imgEl = overlay.querySelector('.tn-lightbox__imagem');
+  const contadorEl = overlay.querySelector('.tn-lightbox__contador');
+
+  imgEl.src = imagem?.url || PLACEHOLDER_IMAGEM;
+  imgEl.alt = imagem?.alt || 'Foto do imóvel';
+  imgEl.onerror = () => {
+    imgEl.onerror = null;
+    imgEl.src = PLACEHOLDER_IMAGEM;
+  };
+
+  contadorEl.textContent = total > 0 ? `${estadoLightbox.indice + 1} / ${total}` : '';
+
+  const mostrarNav = total > 1;
+  overlay.querySelectorAll('.tn-lightbox__nav').forEach((botao) => {
+    botao.style.display = mostrarNav ? 'flex' : 'none';
+  });
+}
+
+function aoPressionarTeclaLightbox(evento) {
+  if (evento.key === 'Escape') fecharLightbox();
+  if (evento.key === 'ArrowRight') navegarLightbox(1);
+  if (evento.key === 'ArrowLeft') navegarLightbox(-1);
+}
+
+function abrirLightbox(indiceInicial) {
+  if (imagensGaleriaAtual.length === 0) return;
+
+  injetarEstilosLightbox();
+  garantirLightboxNoDOM();
+
+  estadoLightbox.indice = indiceInicial;
+  atualizarImagemLightbox();
+
+  const overlay = document.getElementById('tn-lightbox');
+  overlay.classList.add('is-aberto');
+  document.body.classList.add('tn-lightbox-open');
+  document.addEventListener('keydown', aoPressionarTeclaLightbox);
+}
+
+function fecharLightbox() {
+  const overlay = document.getElementById('tn-lightbox');
+  if (overlay) overlay.classList.remove('is-aberto');
+  document.body.classList.remove('tn-lightbox-open');
+  document.removeEventListener('keydown', aoPressionarTeclaLightbox);
+}
+
+function navegarLightbox(direcao) {
+  const total = imagensGaleriaAtual.length;
+  if (total === 0) return;
+  estadoLightbox.indice = (estadoLightbox.indice + direcao + total) % total;
+  atualizarImagemLightbox();
+}
+
+// Delegação de clique: funciona mesmo após o innerHTML da galeria
+// ser recriado a cada renderização do imóvel.
+document.addEventListener('click', (evento) => {
+  const item = evento.target.closest('.imovel-galeria__item');
+  if (!item) return;
+  const indice = Number(item.dataset.indice || 0);
+  abrirLightbox(indice);
+});
+
+// ============================================================
 // Templates visuais
 // ============================================================
 
@@ -60,6 +282,10 @@ function renderizarGaleria(imagens) {
   const lista = Array.isArray(imagens) && imagens.length > 0
     ? [...imagens].sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
     : [{ url: PLACEHOLDER_IMAGEM, alt: "Imóvel sem imagem disponível" }];
+
+  // Guarda a lista completa para o lightbox poder navegar por
+  // todas as fotos, inclusive as que excedem as 5 miniaturas.
+  imagensGaleriaAtual = lista;
 
   const single = lista.length === 1;
   const visiveis = lista.slice(0, 5);
@@ -72,7 +298,7 @@ function renderizarGaleria(imagens) {
     const isLast = !isMain && index === visiveis.length - 1 && extras > 0;
 
     return `
-      <div class="imovel-galeria__item${isMain ? ' imovel-galeria__item--main' : ''}">
+      <div class="imovel-galeria__item${isMain ? ' imovel-galeria__item--main' : ''}" data-indice="${index}" role="button" tabindex="0" aria-label="Ampliar foto ${index + 1}">
         <img src="${url}" alt="${alt}" loading="${isMain ? 'eager' : 'lazy'}"
           onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGEM}';">
         ${isLast ? `<div class="imovel-galeria__more">+${extras} fotos</div>` : ''}
